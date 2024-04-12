@@ -1,0 +1,14 @@
+{
+  "name": "music-collection",
+  "version": "1.0.0",
+  "description": "CLI Music Collection Manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Faisal Al Qasimi",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
