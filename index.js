@@ -126,9 +126,9 @@ function parseUserInput(formattedInput) {
             showAll(optionalArtist);
         } else if (showType === "unplayed") {
             showUnplayed(optionalArtist);
-        } else {
-            console.log("Invalid command");
         }
+    } else {
+        console.log("Invalid command");
     }
 }
 
