@@ -1,12 +1,13 @@
 const readline = require("readline");
-
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
 
 /* Initially thought I'd use a Map for O(1) album lookup, but then decided to use an array
-   as it more closely mimics the "show all" behavior (first in first out) in the prompt
+   as it more closely mimics the "show all" behavior (first in first out) in the prompt. Also
+   I'm not too worried about performance given the expected size of a typical music collection.
+   I'd change this if we're looking at 100,000+ sized music libraries
 */
 const musicCollection = [];
 
@@ -36,9 +37,6 @@ function addAlbum(artist, title) {
     }
 }
 function playAlbum(title) {
-    console.log("musicCollection", musicCollection);
-    console.log("title", title);
-
     const albumIndex = musicCollection.findIndex(
         (album) => album.title.toLowerCase() === title.toLowerCase()
     );
@@ -95,45 +93,88 @@ function showUnplayed(optionalArtist) {
     }
 }
 
+function parseUserInput(formattedInput) {
+    if (formattedInput.startsWith("add")) {
+        const parsedInput = formattedInput
+            .slice(3) // Ignore the "add " portion
+            .split('"')
+            .filter((part) => part.trim() !== "")
+            .map((part) => part);
+        const [title, artist] = parsedInput;
+        addAlbum(artist, title);
+    } else if (formattedInput.startsWith("play")) {
+        const parsedInput = formattedInput
+            .slice(4) // Ignore the "play " portion
+            .split('"')
+            .filter((part) => part.trim() !== "")
+            .map((part) => part);
+        const title = parsedInput[0];
+        playAlbum(title);
+    } else if (formattedInput.startsWith("show")) {
+        const parts = formattedInput.split(" ");
+        const showType = parts[1];
+        const hasOptionalArtist = parts[2] === "by";
+        const optionalArtist = hasOptionalArtist
+            ? parts
+                  .slice(3) //
+                  .join(" ")
+                  .split('"')
+                  .filter((part) => part.trim() !== "")[0]
+            : null;
+
+        if (showType === "all") {
+            showAll(optionalArtist);
+        } else if (showType === "unplayed") {
+            showUnplayed(optionalArtist);
+        } else {
+            console.log("Invalid command");
+        }
+    }
+}
+
+function playDemo() {
+    const demoStrings = [
+        'add "Ride the Lightning" "Metallica"',
+        'add "Licensed to Ill" "Beastie Boys"',
+        'add "Pauls Boutique" "Beastie Boys"',
+        'add "The Dark Side of the Moon" "Pink Floyd"',
+        "show all",
+        'play "Licensed to Ill"',
+        'play "The Dark Side of the Moon"',
+        "show all",
+        "show unplayed",
+        'show all by "Beastie Boys"',
+        'show unplayed by "Beastie Boys"',
+    ];
+
+    let index = 0;
+    const interval = setInterval(() => {
+        const str = demoStrings[index];
+        console.log(`\n> ${str}\n`);
+        parseUserInput(str);
+        index++;
+        if (index >= demoStrings.length) {
+            clearInterval(interval);
+            console.log("Done!");
+            console.log("Music collection state:", musicCollection);
+            getUserInput(rl);
+        }
+    }, 1000);
+}
 function getUserInput(rl) {
     rl.question("> ", (input) => {
-        // TODO trim input
-        if (input === "quit") {
-            console.log("Bye!");
+        console.log(""); // Empty new line for better readability
+        const formattedInput = input.trim();
+        if (formattedInput === "quit") {
+            console.log("Bye!\n");
             rl.close();
-        } else if (input.startsWith("add")) {
-            const parsedInput = input
-                .slice(3) // Ignore the "add " portion
-                .split('"')
-                .filter((part) => part.trim() !== "")
-                .map((part) => part);
-            const [title, artist] = parsedInput;
-            addAlbum(artist, title);
-        } else if (input.startsWith("play")) {
-            const parsedInput = input
-                .slice(4) // Ignore the "play " portion
-                .split('"')
-                .filter((part) => part.trim() !== "")
-                .map((part) => part);
-            const title = parsedInput[0];
-            playAlbum(title);
-        } else if (input.startsWith("show")) {
-            const parts = input.split(" ");
-            const showType = parts[1];
-            const artist = parts.slice(2).join(" ").trim().replace(/"/g, "");
-            // TODO show all by
-            // TODO show unplayed by
-            if (showType === "all" && artist) {
-                showAll(artist);
-            } else if (showType === "unplayed" && artist) {
-                showUnplayed(artist);
-            } else if (showType === "all") {
-                showAll();
-            } else if (showType === "unplayed") {
-                showUnplayed();
-            }
+        } else if (formattedInput === "demo") {
+            playDemo();
+        } else {
+            parseUserInput(formattedInput);
+            console.log(""); // Empty new line for better readability
+            getUserInput(rl);
         }
-        getUserInput(rl);
     });
 }
 if (process.env.NODE_ENV !== "test") {
