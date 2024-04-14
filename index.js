@@ -20,6 +20,10 @@ function init() {
 
 function isDuplicateTitle(title) {
     return musicCollection.some((album) => {
+        /* Assuming there can never be two albums with the same title (even if by different artists)
+          as per the requirements. I opted to use a case-insensitive comparison, which is a bit stricter.
+          Apologies in advance to fans of both Revolver by The Beatles and rEVOLVEr by T-Pain.
+        */
         return album.title.toLowerCase() === title.toLowerCase();
     });
 }
@@ -49,7 +53,7 @@ function playAlbum(title) {
     }
 }
 
-function showAll(optionalArtist) {
+function showAlbums(optionalArtist) {
     if (optionalArtist) {
         const albums = musicCollection.filter(
             (album) =>
@@ -93,42 +97,60 @@ function showUnplayed(optionalArtist) {
     }
 }
 
-function parseUserInput(formattedInput) {
-    if (formattedInput.startsWith("add")) {
-        const parsedInput = formattedInput
-            .slice(3) // Ignore the "add " portion
-            .split('"')
-            .filter((part) => part.trim() !== "")
-            .map((part) => part);
-        const [title, artist] = parsedInput;
-        addAlbum(artist, title);
-    } else if (formattedInput.startsWith("play")) {
-        const parsedInput = formattedInput
-            .slice(4) // Ignore the "play " portion
-            .split('"')
-            .filter((part) => part.trim() !== "")
-            .map((part) => part);
-        const title = parsedInput[0];
-        playAlbum(title);
-    } else if (formattedInput.startsWith("show")) {
-        const parts = formattedInput.split(" ");
-        const showType = parts[1];
-        const hasOptionalArtist = parts[2] === "by";
-        const optionalArtist = hasOptionalArtist
-            ? parts
-                  .slice(3) //
-                  .join(" ")
-                  .split('"')
-                  .filter((part) => part.trim() !== "")[0]
-            : null;
+function parseAddCommand(formattedInput) {
+    const parsedInput = formattedInput
+        .slice(3) // Ignore the "add " portion
+        .split('"')
+        .filter((part) => part.trim() !== "")
+        .map((part) => part);
+    const [title, artist] = parsedInput;
+    addAlbum(artist, title);
+}
 
-        if (showType === "all") {
-            showAll(optionalArtist);
-        } else if (showType === "unplayed") {
-            showUnplayed(optionalArtist);
-        }
-    } else {
-        console.log("Invalid command");
+function parsePlayCommand(formattedInput) {
+    const parsedInput = formattedInput
+        .slice(4) // Ignore the "play " portion
+        .split('"')
+        .filter((part) => part.trim() !== "")
+        .map((part) => part);
+    const title = parsedInput[0];
+    playAlbum(title);
+}
+
+function parseShowCommand(formattedInput) {
+    const parts = formattedInput.split(" ");
+    const showType = parts[1];
+    const hasOptionalArtist = parts[2] === "by";
+    const optionalArtist = hasOptionalArtist
+        ? parts
+              .slice(3) //
+              .join(" ")
+              .split('"')
+              .filter((part) => part.trim() !== "")[0]
+        : null;
+
+    if (showType === "all") {
+        showAlbums(optionalArtist);
+    } else if (showType === "unplayed") {
+        showUnplayed(optionalArtist);
+    }
+}
+
+function parseUserInput(formattedInput) {
+    // command can be of type add, play, show
+    const command = formattedInput.split(" ")[0];
+    switch (command) {
+        case "add":
+            parseAddCommand(formattedInput);
+            break;
+        case "play":
+            parsePlayCommand(formattedInput);
+            break;
+        case "show":
+            parseShowCommand(formattedInput);
+            break;
+        default:
+            console.log("Invalid command");
     }
 }
 
@@ -186,6 +208,6 @@ module.exports = {
     addAlbum,
     playAlbum,
     musicCollection,
-    showAll,
+    showAlbums,
     showUnplayed,
 };
