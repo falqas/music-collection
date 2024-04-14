@@ -28,7 +28,7 @@ function isDuplicateTitle(title) {
     });
 }
 
-function addAlbum(artist, title) {
+function handleAddAlbum(artist, title) {
     if (!isDuplicateTitle(title)) {
         musicCollection.push({
             artist,
@@ -40,7 +40,7 @@ function addAlbum(artist, title) {
         console.log(`Title "${title}" already exists`);
     }
 }
-function playAlbum(title) {
+function handlePlayAlbum(title) {
     const albumIndex = musicCollection.findIndex(
         (album) => album.title.toLowerCase() === title.toLowerCase()
     );
@@ -53,7 +53,7 @@ function playAlbum(title) {
     }
 }
 
-function showAlbums(optionalArtist) {
+function handleShowAlbums(optionalArtist) {
     if (optionalArtist) {
         const albums = musicCollection.filter(
             (album) =>
@@ -77,7 +77,7 @@ function showAlbums(optionalArtist) {
     }
 }
 
-function showUnplayed(optionalArtist) {
+function handleShowUnplayed(optionalArtist) {
     if (optionalArtist) {
         const albums = musicCollection.filter(
             (album) =>
@@ -97,49 +97,49 @@ function showUnplayed(optionalArtist) {
     }
 }
 
+// Probably could have used a regex here, but opted for a simple split and filter
+const removeDoubleQuotes = (str) =>
+    str.split('"').filter((part) => part.trim() !== "");
+
 function parseAddCommand(formattedInput) {
-    const parsedInput = formattedInput
-        .slice(3) // Ignore the "add " portion
-        .split('"')
-        .filter((part) => part.trim() !== "")
-        .map((part) => part);
+    const textAfterAddPortion = formattedInput.slice(4); // Ignore the "add " portion
+    const parsedInput = removeDoubleQuotes(textAfterAddPortion);
     const [title, artist] = parsedInput;
-    addAlbum(artist, title);
+    handleAddAlbum(artist, title);
 }
 
 function parsePlayCommand(formattedInput) {
-    const parsedInput = formattedInput
-        .slice(4) // Ignore the "play " portion
-        .split('"')
-        .filter((part) => part.trim() !== "")
-        .map((part) => part);
+    const textAfterPlayPortion = formattedInput.slice(5); // Ignore the "play " portion
+    const parsedInput = removeDoubleQuotes(textAfterPlayPortion); // Ignore the "play " portion
     const title = parsedInput[0];
-    playAlbum(title);
+    handlePlayAlbum(title);
 }
 
 function parseShowCommand(formattedInput) {
     const parts = formattedInput.split(" ");
-    const showType = parts[1];
+    const showType = parts[1]; // showType can be all or unplayed
+    // Check if the user input has an optional artist argument. Position in the array matters,
+    // e.g. in "show all by "Naughty by Nature"" is valid", we want the first instance of "by"
+    let optionalArtist = null;
     const hasOptionalArtist = parts[2] === "by";
-    const optionalArtist = hasOptionalArtist
-        ? parts
-              .slice(3) //
-              .join(" ")
-              .split('"')
-              .filter((part) => part.trim() !== "")[0]
-        : null;
+    if (hasOptionalArtist) {
+        const byIndex = formattedInput.indexOf("by");
+        const textAfterByPortion = formattedInput.slice(byIndex + 3);
+        const parsedInput = removeDoubleQuotes(textAfterByPortion);
+        optionalArtist = parsedInput[0];
+    }
 
     if (showType === "all") {
-        showAlbums(optionalArtist);
+        handleShowAlbums(optionalArtist);
     } else if (showType === "unplayed") {
-        showUnplayed(optionalArtist);
+        handleShowUnplayed(optionalArtist);
     }
 }
 
 function parseUserInput(formattedInput) {
-    // command can be of type add, play, show
-    const command = formattedInput.split(" ")[0];
-    switch (command) {
+    // commandType can be add, play, or show
+    const commandType = formattedInput.split(" ")[0].toLowerCase();
+    switch (commandType) {
         case "add":
             parseAddCommand(formattedInput);
             break;
@@ -187,10 +187,10 @@ function getUserInput(rl) {
     rl.question("> ", (input) => {
         console.log(""); // Empty new line for better readability
         const formattedInput = input.trim();
-        if (formattedInput === "quit") {
+        if (formattedInput.toLowerCase() === "quit") {
             console.log("Bye!\n");
             rl.close();
-        } else if (formattedInput === "demo") {
+        } else if (formattedInput.toLowerCase() === "demo") {
             playDemo();
         } else {
             parseUserInput(formattedInput);
@@ -205,9 +205,9 @@ if (process.env.NODE_ENV !== "test") {
 
 module.exports = {
     getUserInput,
-    addAlbum,
-    playAlbum,
+    handleAddAlbum,
+    handlePlayAlbum,
+    handleShowAlbums,
+    handleShowUnplayed,
     musicCollection,
-    showAlbums,
-    showUnplayed,
 };
