@@ -1,4 +1,4 @@
-const readline = require('readline');
+import readline from 'readline';
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -15,7 +15,7 @@ init();
 
 function init() {
   console.clear();
-  console.log('Welcome to your music collection!');
+  console.log('Welcome to your music collection!\n');
 }
 
 function isDuplicateTitle(title) {
@@ -51,19 +51,27 @@ function handlePlayAlbum(title) {
 
   if (albumIndex !== -1) {
     musicCollection[albumIndex].isPlayed = true;
-    console.log(`You're listening to "${title}"`);
+    console.log(`🎵 You're listening to "${title}"`);
   } else {
     console.log(`"${title}" not found`);
   }
 }
 
+function handleShow(optionalArtist, showType) {
+  if (showType === 'all') {
+    handleShowAlbums(optionalArtist);
+  } else if (showType === 'unplayed') {
+    handleShowUnplayed(optionalArtist);
+  }
+}
+
 function handleShowAlbums(optionalArtist) {
   if (optionalArtist) {
-    const albums = musicCollection.filter(
+    const albumsByArtist = musicCollection.filter(
       (album) =>
         album.artist.toLowerCase() === optionalArtist.toLowerCase()
     );
-    albums.forEach((album) => {
+    albumsByArtist.forEach((album) => {
       console.log(
         `"${album.title}" by ${album.artist} (${
           album.isPlayed ? 'played' : 'unplayed'
@@ -83,12 +91,12 @@ function handleShowAlbums(optionalArtist) {
 
 function handleShowUnplayed(optionalArtist) {
   if (optionalArtist) {
-    const albums = musicCollection.filter(
+    const unplayedByArtist = musicCollection.filter(
       (album) =>
         album.artist.toLowerCase() === optionalArtist.toLowerCase() &&
         album.isPlayed === false
     );
-    albums.forEach((album) => {
+    unplayedByArtist.forEach((album) => {
       console.log(`"${album.title}" by ${album.artist}`);
     });
   } else {
@@ -105,21 +113,21 @@ function handleShowUnplayed(optionalArtist) {
 const removeDoubleQuotes = (str) =>
   str.split('"').filter((part) => part.trim() !== '');
 
-function parseAddCommand(formattedInput) {
+function parseAddCommand(formattedInput, handler) {
   const textAfterAddPortion = formattedInput.slice(4); // Ignore the "add " portion
   const parsedInput = removeDoubleQuotes(textAfterAddPortion);
   const [title, artist] = parsedInput;
-  handleAddAlbum(artist, title);
+  handler(artist, title);
 }
 
-function parsePlayCommand(formattedInput) {
+function parsePlayCommand(formattedInput, handler) {
   const textAfterPlayPortion = formattedInput.slice(5); // Ignore the "play " portion
   const parsedInput = removeDoubleQuotes(textAfterPlayPortion); // Ignore the "play " portion
   const title = parsedInput[0];
-  handlePlayAlbum(title);
+  handler(title);
 }
 
-function parseShowCommand(formattedInput) {
+function parseShowCommand(formattedInput, handler) {
   const parts = formattedInput.split(' ');
   const showType = parts[1]; // showType can be all or unplayed
   // Check if the user input has an optional artist argument. Position in the array matters,
@@ -132,12 +140,7 @@ function parseShowCommand(formattedInput) {
     const parsedInput = removeDoubleQuotes(textAfterByPortion);
     optionalArtist = parsedInput[0];
   }
-
-  if (showType === 'all') {
-    handleShowAlbums(optionalArtist);
-  } else if (showType === 'unplayed') {
-    handleShowUnplayed(optionalArtist);
-  }
+  handler(optionalArtist, showType);
 }
 
 function parseUserInput(formattedInput) {
@@ -145,13 +148,13 @@ function parseUserInput(formattedInput) {
   const commandType = formattedInput.split(' ')[0].toLowerCase();
   switch (commandType) {
     case 'add':
-      parseAddCommand(formattedInput);
+      parseAddCommand(formattedInput, handleAddAlbum);
       break;
     case 'play':
-      parsePlayCommand(formattedInput);
+      parsePlayCommand(formattedInput, handlePlayAlbum);
       break;
     case 'show':
-      parseShowCommand(formattedInput);
+      parseShowCommand(formattedInput, handleShow);
       break;
     default:
       console.log('Invalid command');
@@ -207,9 +210,10 @@ if (process.env.NODE_ENV !== 'test') {
   getUserInput(rl);
 }
 
-module.exports = {
+export {
   handleAddAlbum,
   handlePlayAlbum,
+  handleShow,
   handleShowAlbums,
   handleShowUnplayed,
   parseUserInput,
@@ -217,4 +221,5 @@ module.exports = {
   parsePlayCommand,
   parseShowCommand,
   musicCollection,
+  removeDoubleQuotes,
 };

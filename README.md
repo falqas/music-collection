@@ -22,8 +22,9 @@ From the prompt within the script, the following commands are available to you:
 
 ## Considerations/future builds:
 
-1. Better error handling ("Did you mean $cmd" rather than "Invalid command")
-2. Refactor the `parseUserInput` function to return one of the "command function" (e.g. `parseAddCommand`) to reduce coupling and enhance testability
-3. Add more integration tests for parsing functions & readline module
-4. Add support for non-alphanumeric characters for artist or title (e.g. `Paul's Boutique` vs `Pauls Boutique`)
-5. Add regex for more complex input parsing
+- [x] Refactor the `parseUserInput` function to return one of the "command function" (e.g. `parseAddCommand`) to reduce coupling and enhance testability
+- [x] Add more integration tests for parsing functions & readline module
+- [ ] Better error handling ("Did you mean $cmd" rather than "Invalid command")
+- [ ] Add support for non-alphanumeric characters for artist or title (e.g. `Paul's Boutique` vs `Pauls Boutique`)
+- [ ] Add regex for more complex input parsing
+- [ ] Add shuffle!

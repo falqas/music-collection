@@ -4,15 +4,12 @@
   "description": "CLI Music Collection Manager",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit"
+    "test": "vitest"
   },
   "type": "module",
-  "jest": {
-    "transform": {}
-  },
   "author": "Faisal Al Qasimi",
   "license": "ISC",
   "devDependencies": {
-    "jest": "^29.7.0"
+    "vitest": "^1.5.0"
   }
 }
